@@ -77,6 +77,46 @@ const SiteSettings = sequelize.define('SiteSettings', {
     type: DataTypes.TEXT,
     defaultValue: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=800',
   },
+  aboutMission: {
+    type: DataTypes.TEXT,
+    defaultValue: 'To democratize access to quality international education by providing expert guidance, comprehensive support, and transparent information to every aspiring student, regardless of their background.',
+  },
+  aboutVision: {
+    type: DataTypes.TEXT,
+    defaultValue: 'To become the most trusted and comprehensive education consultancy platform, connecting students with the best universities worldwide and shaping the future leaders of tomorrow.',
+  },
+  stats: {
+    type: DataTypes.TEXT,
+    defaultValue: '[]',
+    get() {
+      const val = this.getDataValue('stats');
+      try { return JSON.parse(val); } catch { return [
+        { number: "5000+", label: "Students Guided" },
+        { number: "200+", label: "Partner Universities" },
+        { number: "15+", label: "Countries" },
+        { number: "95%", label: "Visa Success Rate" }
+      ]; }
+    },
+    set(val) {
+      this.setDataValue('stats', JSON.stringify(val));
+    },
+  },
+  team: {
+    type: DataTypes.TEXT,
+    defaultValue: '[]',
+    get() {
+      const val = this.getDataValue('team');
+      try { return JSON.parse(val); } catch { return [
+        { name: "Dr. Rajesh Kumar", role: "Founder & CEO", initials: "RK" },
+        { name: "Anita Desai", role: "Head of Admissions", initials: "AD" },
+        { name: "Michael Chen", role: "Visa Counselor", initials: "MC" },
+        { name: "Sarah Wilson", role: "Career Advisor", initials: "SW" }
+      ]; }
+    },
+    set(val) {
+      this.setDataValue('team', JSON.stringify(val));
+    },
+  },
 }, {
   tableName: 'site_settings',
   timestamps: true,
