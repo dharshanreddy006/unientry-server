@@ -10,7 +10,11 @@ router.post('/', protect, upload.single('image'), (req, res) => {
       return res.status(400).json({ success: false, message: 'No file uploaded' });
     }
 
-    const imageUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+    let baseUrl = `${req.protocol}://${req.get('host')}`;
+    if (req.get('host').includes('railway.app')) {
+      baseUrl = `https://${req.get('host')}`;
+    }
+    const imageUrl = `${baseUrl}/uploads/${req.file.filename}`;
 
     res.json({
       success: true,
