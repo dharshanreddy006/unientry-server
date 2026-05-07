@@ -61,6 +61,22 @@ const SiteSettings = sequelize.define('SiteSettings', {
       this.setDataValue('testimonials', JSON.stringify(val));
     },
   },
+  founderName: {
+    type: DataTypes.STRING(255),
+    defaultValue: 'Dr. Jane Smith',
+  },
+  founderRole: {
+    type: DataTypes.STRING(255),
+    defaultValue: 'Founder & CEO, UniEntry',
+  },
+  founderMessage: {
+    type: DataTypes.TEXT,
+    defaultValue: 'Education is the passport to the future, for tomorrow belongs to those who prepare for it today. We started UniEntry to bridge the gap between talented students and world-class education.',
+  },
+  founderImageUrl: {
+    type: DataTypes.TEXT,
+    defaultValue: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=800',
+  },
 }, {
   tableName: 'site_settings',
   timestamps: true,

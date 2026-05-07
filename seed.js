@@ -240,6 +240,10 @@ const seedDB = async () => {
       heroTitle: 'Your Gateway to Global Education',
       heroSubtitle: 'Discover top universities worldwide. Get expert guidance for admissions, visas, and scholarships — all in one place.',
       aboutText: 'UniEntry is a trusted educational consultancy helping students achieve their dream of studying at top universities worldwide.',
+      founderName: 'Dr. Jane Smith',
+      founderRole: 'Founder & CEO, UniEntry',
+      founderMessage: 'Education is the passport to the future, for tomorrow belongs to those who prepare for it today. We started UniEntry to bridge the gap between talented students and world-class education.',
+      founderImageUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=800',
     });
 
     console.log('\n✅ Database seeded successfully!');
