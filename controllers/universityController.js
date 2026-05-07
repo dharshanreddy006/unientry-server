@@ -141,6 +141,10 @@ function flattenUniversityInput(body) {
     delete data.coverImage;
   }
 
+  if (body.uniCheatsUrl !== undefined) {
+    data.uniCheatsUrl = body.uniCheatsUrl || '';
+  }
+
   // Remove _id if sent from frontend
   delete data._id;
 
@@ -179,6 +183,7 @@ function transformUniversity(uni) {
       url: plain.coverImageUrl ? plain.coverImageUrl.replace('http://unientry-server-production.up.railway.app', 'https://unientry-server-production.up.railway.app') : '',
       publicId: plain.coverImagePublicId,
     },
+    uniCheatsUrl: plain.uniCheatsUrl ? plain.uniCheatsUrl.replace('http://unientry-server-production.up.railway.app', 'https://unientry-server-production.up.railway.app') : '',
     images: plain.images,
     createdAt: plain.createdAt,
     updatedAt: plain.updatedAt,

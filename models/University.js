@@ -81,6 +81,10 @@ const University = sequelize.define('University', {
     type: DataTypes.TEXT,
     defaultValue: '',
   },
+  uniCheatsUrl: {
+    type: DataTypes.TEXT,
+    defaultValue: '',
+  },
   coverImagePublicId: {
     type: DataTypes.STRING(255),
     defaultValue: '',
