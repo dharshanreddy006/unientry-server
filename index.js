@@ -17,21 +17,9 @@ if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir);
 }
 
-// Middleware
+// Middleware - More permissive CORS for production stability
 app.use(cors({
-  origin: function (origin, callback) {
-    const allowed = [
-      'http://localhost:3000',
-      process.env.CLIENT_URL,
-    ];
-    // Allow requests with no origin (mobile apps, curl, etc)
-    if (!origin) return callback(null, true);
-    // Allow any vercel.app or railway.app domain
-    if (origin.includes('vercel.app') || origin.includes('railway.app') || allowed.includes(origin)) {
-      return callback(null, true);
-    }
-    return callback(null, true); // Allow all for now
-  },
+  origin: true,
   credentials: true,
 }));
 app.use(express.json({ limit: '10mb' }));

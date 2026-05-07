@@ -176,7 +176,7 @@ function transformUniversity(uni) {
       documents: plain.eligibilityDocuments,
     },
     coverImage: {
-      url: plain.coverImageUrl,
+      url: plain.coverImageUrl ? plain.coverImageUrl.replace('http://unientry-server-production.up.railway.app', 'https://unientry-server-production.up.railway.app') : '',
       publicId: plain.coverImagePublicId,
     },
     images: plain.images,
