@@ -46,6 +46,7 @@ app.use('/api/internships', require('./routes/internshipRoutes'));
 app.use('/api/inquiry', require('./routes/inquiryRoutes'));
 app.use('/api/settings', require('./routes/settingsRoutes'));
 app.use('/api/upload', require('./routes/uploadRoutes'));
+app.use('/api/destinations', require('./routes/destinationRoutes'));
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -75,6 +76,7 @@ const autoSeed = async () => {
     const Internship = require('./models/Internship');
     const Admin = require('./models/Admin');
     const SiteSettings = require('./models/SiteSettings');
+    const Destination = require('./models/Destination');
 
     await University.bulkCreate([
       { universityName: 'Technical University of Munich', country: 'Germany', city: 'Munich', description: 'The Technical University of Munich (TUM) is one of the top universities in Europe, known for its excellence in engineering, technology, and natural sciences.', tuitionFees: '€300/semester', hostelFees: '€400-600/month', livingCost: '€900/month', duration: '4 Years', degreeType: 'Undergraduate', courses: ['Computer Science', 'Mechanical Engineering', 'Electrical Engineering', 'Mathematics', 'Physics', 'Architecture'], eligibilityMarks: '75%', eligibilityIelts: '6.5', eligibilityToefl: '88', eligibilityDocuments: ['Transcripts', 'Passport', 'SOP', 'LOR', 'IELTS/TOEFL', 'CV'], coverImageUrl: 'https://images.unsplash.com/photo-1592280771190-3e2e4d571952?w=800', featured: true, ranking: '#1 in Germany', website: 'https://www.tum.de' },
@@ -107,6 +109,15 @@ const autoSeed = async () => {
       founderMessage: 'Education is the passport to the future, for tomorrow belongs to those who prepare for it today. We started UniEntry to bridge the gap between talented students and world-class education.',
       founderImageUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=800',
     });
+
+    await Destination.bulkCreate([
+      { name: 'Germany', flag: '🇩🇪', imageUrl: 'https://images.unsplash.com/photo-1467269204594-9661b134dd2b?w=600', description: 'Low tuition fees, world-class engineering programs, and post-study work opportunities.', order: 1 },
+      { name: 'UK', flag: '🇬🇧', imageUrl: 'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=600', description: 'Prestigious universities, shorter degree programs, and diverse cultural experience.', order: 2 },
+      { name: 'USA', flag: '🇺🇸', imageUrl: 'https://images.unsplash.com/photo-1485738422979-f5c462d49f04?w=600', description: 'Top-ranked universities, extensive research opportunities, and campus life like no other.', order: 3 },
+      { name: 'Canada', flag: '🇨🇦', imageUrl: 'https://images.unsplash.com/photo-1503614472-8c93d56e92ce?w=600', description: 'Affordable education, welcoming immigration policies, and excellent quality of life.', order: 4 },
+      { name: 'Australia', flag: '🇦🇺', imageUrl: 'https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?w=600', description: 'Innovative universities, vibrant lifestyle, and strong support for international students.', order: 5 },
+      { name: 'India', flag: '🇮🇳', imageUrl: 'https://images.unsplash.com/photo-1524492707947-2f85a64b67ad?w=600', description: 'Rapidly growing education sector, diverse culture, and emerging opportunities in tech and research.', order: 6 },
+    ]);
     console.log('✅ Database seeded successfully!');
   } catch (err) {
     console.error('⚠️ Auto-seed error:', err.message);
