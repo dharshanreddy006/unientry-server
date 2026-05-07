@@ -85,6 +85,17 @@ const University = sequelize.define('University', {
     type: DataTypes.TEXT,
     defaultValue: '',
   },
+  uniCheats: {
+    type: DataTypes.TEXT,
+    defaultValue: '[]',
+    get() {
+      const val = this.getDataValue('uniCheats');
+      try { return JSON.parse(val); } catch { return []; }
+    },
+    set(val) {
+      this.setDataValue('uniCheats', JSON.stringify(val));
+    },
+  },
   referAndEarn: {
     type: DataTypes.TEXT,
     defaultValue: '',

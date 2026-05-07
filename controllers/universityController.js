@@ -145,6 +145,10 @@ function flattenUniversityInput(body) {
     data.uniCheatsUrl = body.uniCheatsUrl || '';
   }
 
+  if (body.uniCheats !== undefined) {
+    data.uniCheats = body.uniCheats || [];
+  }
+
   if (body.referAndEarn !== undefined) {
     data.referAndEarn = body.referAndEarn || '';
   }
@@ -188,6 +192,21 @@ function transformUniversity(uni) {
       publicId: plain.coverImagePublicId,
     },
     uniCheatsUrl: plain.uniCheatsUrl ? plain.uniCheatsUrl.replace('http://unientry-server-production.up.railway.app', 'https://unientry-server-production.up.railway.app') : '',
+    uniCheats: (() => {
+      let cheats = plain.uniCheats || [];
+      if (cheats.length === 0 && plain.uniCheatsUrl) {
+        cheats = [{
+          url: plain.uniCheatsUrl.replace('http://unientry-server-production.up.railway.app', 'https://unientry-server-production.up.railway.app'),
+          note: 'General Document',
+        }];
+      } else {
+        cheats = cheats.map(c => ({
+          ...c,
+          url: c.url ? c.url.replace('http://unientry-server-production.up.railway.app', 'https://unientry-server-production.up.railway.app') : '',
+        }));
+      }
+      return cheats;
+    })(),
     referAndEarn: plain.referAndEarn || '',
     images: plain.images,
     createdAt: plain.createdAt,
