@@ -145,6 +145,10 @@ function flattenUniversityInput(body) {
     data.uniCheatsUrl = body.uniCheatsUrl || '';
   }
 
+  if (body.referAndEarn !== undefined) {
+    data.referAndEarn = body.referAndEarn || '';
+  }
+
   // Remove _id if sent from frontend
   delete data._id;
 
@@ -184,6 +188,7 @@ function transformUniversity(uni) {
       publicId: plain.coverImagePublicId,
     },
     uniCheatsUrl: plain.uniCheatsUrl ? plain.uniCheatsUrl.replace('http://unientry-server-production.up.railway.app', 'https://unientry-server-production.up.railway.app') : '',
+    referAndEarn: plain.referAndEarn || '',
     images: plain.images,
     createdAt: plain.createdAt,
     updatedAt: plain.updatedAt,

@@ -85,6 +85,10 @@ const University = sequelize.define('University', {
     type: DataTypes.TEXT,
     defaultValue: '',
   },
+  referAndEarn: {
+    type: DataTypes.TEXT,
+    defaultValue: '',
+  },
   coverImagePublicId: {
     type: DataTypes.STRING(255),
     defaultValue: '',
