@@ -131,6 +131,10 @@ const University = sequelize.define('University', {
     type: DataTypes.STRING(500),
     defaultValue: '',
   },
+  resourcePrice: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0,
+  },
 }, {
   tableName: 'universities',
   timestamps: true,
