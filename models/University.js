@@ -135,6 +135,10 @@ const University = sequelize.define('University', {
     type: DataTypes.INTEGER,
     defaultValue: 0,
   },
+  isFreeResources: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+  },
 }, {
   tableName: 'universities',
   timestamps: true,

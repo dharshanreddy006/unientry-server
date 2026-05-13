@@ -153,6 +153,14 @@ function flattenUniversityInput(body) {
     data.referAndEarn = body.referAndEarn || '';
   }
 
+  if (body.isFreeResources !== undefined) {
+    data.isFreeResources = body.isFreeResources;
+  }
+
+  if (body.resourcePrice !== undefined) {
+    data.resourcePrice = parseInt(body.resourcePrice) || 0;
+  }
+
   // Remove _id if sent from frontend
   delete data._id;
 
@@ -176,6 +184,8 @@ function transformUniversity(uni) {
     ranking: plain.ranking,
     website: plain.website,
     whatsappNumber: plain.whatsappNumber,
+    resourcePrice: plain.resourcePrice || 0,
+    isFreeResources: !!plain.isFreeResources,
     fees: {
       tuition: plain.tuitionFees,
       hostel: plain.hostelFees,
