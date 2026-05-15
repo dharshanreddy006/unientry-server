@@ -37,6 +37,7 @@ app.use('/api/settings', require('./routes/settingsRoutes'));
 app.use('/api/upload', require('./routes/uploadRoutes'));
 app.use('/api/destinations', require('./routes/destinationRoutes'));
 app.use('/api/resources', require('./routes/resourceRoutes'));
+app.use('/api/marketplace', require('./routes/marketplaceRoutes'));
 
 // Health check
 app.get('/api/health', (req, res) => {
