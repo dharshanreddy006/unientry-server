@@ -46,6 +46,14 @@ const SiteSettings = sequelize.define('SiteSettings', {
     type: DataTypes.TEXT,
     defaultValue: '',
   },
+  logoUrl: {
+    type: DataTypes.TEXT,
+    defaultValue: '',
+  },
+  faviconUrl: {
+    type: DataTypes.TEXT,
+    defaultValue: '',
+  },
   aboutText: {
     type: DataTypes.TEXT,
     defaultValue: 'UniEntry is a trusted educational consultancy helping students achieve their dream of studying at top universities worldwide.',
