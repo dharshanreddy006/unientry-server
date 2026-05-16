@@ -31,7 +31,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // Routes
 app.use('/api/admin', require('./routes/authRoutes'));
 app.use('/api/universities', require('./routes/universityRoutes'));
-app.use('/api/internships', require('./routes/internshipRoutes'));
+app.use('/api/accommodations', require('./routes/accommodationRoutes'));
 app.use('/api/inquiry', require('./routes/inquiryRoutes'));
 app.use('/api/settings', require('./routes/settingsRoutes'));
 app.use('/api/upload', require('./routes/uploadRoutes'));
@@ -58,7 +58,7 @@ app.use((err, req, res, next) => {
 const autoSeed = async () => {
   try {
     const University = require('./models/University');
-    const Internship = require('./models/Internship');
+    const Accommodation = require('./models/Accommodation');
     const Admin = require('./models/Admin');
     const SiteSettings = require('./models/SiteSettings');
     const Destination = require('./models/Destination');
@@ -104,18 +104,15 @@ const autoSeed = async () => {
       console.log('🌱 Universities seeded');
     }
 
-    // Seed Internships
-    const internshipCount = await Internship.count();
-    if (internshipCount === 0) {
-      await Internship.bulkCreate([
-        { companyName: 'Google', role: 'Software Engineering Intern', duration: '3 Months', stipend: '$8,000/month', description: 'Join Google as a Software Engineering Intern and work on cutting-edge technology projects.', skills: ['Python', 'Java', 'Data Structures', 'Algorithms', 'System Design'], location: 'Mountain View, CA', type: 'On-site', active: true },
-        { companyName: 'Microsoft', role: 'Data Science Intern', duration: '6 Months', stipend: '$7,500/month', description: 'Work on real-world data science projects at Microsoft.', skills: ['Python', 'Machine Learning', 'SQL', 'Azure', 'TensorFlow'], location: 'Redmond, WA', type: 'Hybrid', active: true },
-        { companyName: 'Amazon', role: 'Cloud Engineering Intern', duration: '3 Months', stipend: '$7,000/month', description: 'Help build and maintain AWS cloud infrastructure.', skills: ['AWS', 'Linux', 'Docker', 'Kubernetes', 'Python'], location: 'Seattle, WA', type: 'On-site', active: true },
-        { companyName: 'Deloitte', role: 'Business Analyst Intern', duration: '6 Months', stipend: '₹40,000/month', description: 'Work with Deloitte consulting team on business transformation projects.', skills: ['Excel', 'SQL', 'PowerBI', 'Communication', 'Problem Solving'], location: 'Mumbai, India', type: 'Hybrid', active: true },
-        { companyName: 'Siemens', role: 'Mechanical Engineering Intern', duration: '4 Months', stipend: '€1,500/month', description: 'Join Siemens Engineering team on industrial automation projects.', skills: ['CAD/CAM', 'SolidWorks', 'AutoCAD', 'MATLAB', 'Project Management'], location: 'Munich, Germany', type: 'On-site', active: true },
-        { companyName: 'TCS', role: 'Full Stack Developer Intern', duration: '3 Months', stipend: '₹25,000/month', description: 'Develop web applications using modern technologies at TCS.', skills: ['React', 'Node.js', 'MongoDB', 'Express', 'JavaScript'], location: 'Remote', type: 'Remote', active: true },
+    // Seed Accommodations
+    const accommodationCount = await Accommodation.count();
+    if (accommodationCount === 0) {
+      await Accommodation.bulkCreate([
+        { propertyName: 'Studentenwerk München', roomType: 'Single Room', distance: '5 mins walk', price: '€350/month', description: 'Affordable student housing managed by the student union.', amenities: ['Wifi', 'Laundry', 'Common Kitchen'], location: 'Munich, Germany', universityId: 1, active: true },
+        { propertyName: 'Oxford Graduate Housing', roomType: 'Studio', distance: '10 mins walk', price: '£1,200/month', description: 'Premium studio apartments for graduate students.', amenities: ['En-suite', 'Wifi', 'Study Room'], location: 'Oxford, UK', universityId: 2, active: true },
+        { propertyName: 'Cambridge Commons', roomType: 'Shared Apartment', distance: '2 miles', price: '$1,500/month', description: 'Cozy shared living space near campus.', amenities: ['Gym', 'Parking', 'Garden'], location: 'Cambridge, USA', universityId: 3, active: true },
       ]);
-      console.log('🌱 Internships seeded');
+      console.log('🌱 Accommodations seeded');
     }
 
     // Seed Destinations

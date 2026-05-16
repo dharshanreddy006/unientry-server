@@ -1,56 +1,52 @@
 const { DataTypes } = require('sequelize');
 const { sequelize } = require('../config/db');
 
-const Internship = sequelize.define('Internship', {
+const Accommodation = sequelize.define('Accommodation', {
   id: {
     type: DataTypes.INTEGER,
     primaryKey: true,
     autoIncrement: true,
   },
-  companyName: {
+  propertyName: {
     type: DataTypes.STRING(255),
     allowNull: false,
   },
-  role: {
+  roomType: {
     type: DataTypes.STRING(255),
-    allowNull: false,
+    allowNull: false, // Single, Shared, Studio, etc.
   },
-  duration: {
-    type: DataTypes.STRING(50),
-    allowNull: false,
-  },
-  stipend: {
+  price: {
     type: DataTypes.STRING(100),
-    defaultValue: 'Unpaid',
+    defaultValue: 'Contact for Price',
+  },
+  distance: {
+    type: DataTypes.STRING(100),
+    defaultValue: 'Near University',
   },
   description: {
     type: DataTypes.TEXT,
     allowNull: false,
   },
-  skills: {
+  amenities: {
     type: DataTypes.TEXT,
     defaultValue: '[]',
     get() {
-      const val = this.getDataValue('skills');
+      const val = this.getDataValue('amenities');
       try { return JSON.parse(val); } catch { return []; }
     },
     set(val) {
-      this.setDataValue('skills', JSON.stringify(val));
+      this.setDataValue('amenities', JSON.stringify(val));
     },
   },
   location: {
     type: DataTypes.STRING(255),
-    defaultValue: 'Remote',
+    allowNull: false,
   },
-  type: {
-    type: DataTypes.ENUM('Remote', 'On-site', 'Hybrid'),
-    defaultValue: 'Remote',
+  universityId: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
   },
-  applyLink: {
-    type: DataTypes.STRING(500),
-    defaultValue: '',
-  },
-  companyLogoUrl: {
+  imageUrl: {
     type: DataTypes.TEXT,
     defaultValue: '',
   },
@@ -59,8 +55,8 @@ const Internship = sequelize.define('Internship', {
     defaultValue: true,
   },
 }, {
-  tableName: 'internships',
+  tableName: 'accommodations',
   timestamps: true,
 });
 
-module.exports = Internship;
+module.exports = Accommodation;

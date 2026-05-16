@@ -1,6 +1,6 @@
 const SiteSettings = require('../models/SiteSettings');
 const University = require('../models/University');
-const Internship = require('../models/Internship');
+const Accommodation = require('../models/Accommodation');
 const Inquiry = require('../models/Inquiry');
 
 // GET /api/settings
@@ -39,7 +39,7 @@ exports.updateSettings = async (req, res) => {
 exports.getDashboardStats = async (req, res) => {
   try {
     const totalUniversities = await University.count();
-    const totalInternships = await Internship.count();
+    const totalAccommodations = await Accommodation.count();
     const totalInquiries = await Inquiry.count();
     const newInquiries = await Inquiry.count({ where: { status: 'new' } });
 
@@ -52,7 +52,7 @@ exports.getDashboardStats = async (req, res) => {
       success: true,
       data: {
         totalUniversities,
-        totalInternships,
+        totalAccommodations,
         totalInquiries,
         newInquiries,
         recentInquiries: recentInquiries.map((inq) => {
