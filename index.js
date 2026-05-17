@@ -38,6 +38,7 @@ app.use('/api/upload', require('./routes/uploadRoutes'));
 app.use('/api/destinations', require('./routes/destinationRoutes'));
 app.use('/api/resources', require('./routes/resourceRoutes'));
 app.use('/api/marketplace', require('./routes/marketplaceRoutes'));
+app.use('/api/rent-and-rides', require('./routes/rentAndRideRoutes'));
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -62,6 +63,7 @@ const autoSeed = async () => {
     const Admin = require('./models/Admin');
     const SiteSettings = require('./models/SiteSettings');
     const Destination = require('./models/Destination');
+    const RentAndRide = require('./models/RentAndRide');
 
     // Seed Admin
     const adminCount = await Admin.count();
