@@ -48,6 +48,22 @@ app.get('/api/health', (req, res) => {
 // Error handling
 app.use((err, req, res, next) => {
   console.error(err.stack);
+  
+  // Handle Multer file size limit or other upload errors
+  if (err.code === 'LIMIT_FILE_SIZE') {
+    return res.status(400).json({
+      success: false,
+      message: 'File size too large. Maximum allowed size is 100MB.',
+    });
+  }
+  
+  if (err.message && (err.message.includes('Only image files') || err.message.includes('Only images'))) {
+    return res.status(400).json({
+      success: false,
+      message: err.message,
+    });
+  }
+
   res.status(500).json({
     success: false,
     message: 'Internal server error',
