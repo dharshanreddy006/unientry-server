@@ -169,10 +169,22 @@ const autoSeed = async () => {
 const PORT = process.env.PORT || 5000;
 
 connectDB().then(async () => {
-  await autoSeed();
+  const { getDbStatus } = require('./config/db');
+  if (getDbStatus().connected) {
+    try {
+      await autoSeed();
+    } catch (seedError) {
+      console.error('⚠️ Auto-seed failed:', seedError.message);
+    }
+  } else {
+    console.warn('⚠️ Skipping auto-seed because database is not connected.');
+  }
+
   app.listen(PORT, '0.0.0.0', () => {
     console.log(`\n🚀 UniEntry API Server running on port ${PORT}`);
     console.log(`📡 API: http://0.0.0.0:${PORT}/api`);
     console.log(`💾 Database: MySQL (${process.env.DB_HOST || 'localhost'}:${process.env.DB_PORT || 3306}/${process.env.DB_NAME || 'unientry'})\n`);
   });
+}).catch((err) => {
+  console.error('💥 Failed to start application:', err.message);
 });
