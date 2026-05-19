@@ -181,9 +181,10 @@ connectDB().then(async () => {
   }
 
   app.listen(PORT, '0.0.0.0', () => {
+    const dbSource = process.env.MYSQL_URL || process.env.DATABASE_URL ? 'Connection URL' : `${process.env.DB_HOST || 'localhost'}:${process.env.DB_PORT || 3306}/${process.env.DB_NAME || 'unientry'}`;
     console.log(`\n🚀 UniEntry API Server running on port ${PORT}`);
     console.log(`📡 API: http://0.0.0.0:${PORT}/api`);
-    console.log(`💾 Database: MySQL (${process.env.DB_HOST || 'localhost'}:${process.env.DB_PORT || 3306}/${process.env.DB_NAME || 'unientry'})\n`);
+    console.log(`💾 Database: MySQL (${dbSource})\n`);
   });
 }).catch((err) => {
   console.error('💥 Failed to start application:', err.message);
