@@ -21,6 +21,11 @@ const sequelize = new Sequelize(
   }
 );
 
+let dbStatus = {
+  connected: false,
+  error: null
+};
+
 const connectDB = async () => {
   try {
     await sequelize.authenticate();
@@ -29,10 +34,16 @@ const connectDB = async () => {
     // Sync all models (creates tables if they don't exist)
     await sequelize.sync({ alter: true });
     console.log('✅ Database tables synced');
+    dbStatus.connected = true;
+    dbStatus.error = null;
   } catch (error) {
     console.error('❌ MySQL Connection Error:', error.message);
-    process.exit(1);
+    dbStatus.connected = false;
+    dbStatus.error = error.message;
+    // Do not call process.exit(1) so the server can boot and serve diagnostic info
   }
 };
 
-module.exports = { sequelize, connectDB };
+const getDbStatus = () => dbStatus;
+
+module.exports = { sequelize, connectDB, getDbStatus };

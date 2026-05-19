@@ -42,7 +42,19 @@ app.use('/api/rent-and-rides', require('./routes/rentAndRideRoutes'));
 
 // Health check
 app.get('/api/health', (req, res) => {
-  res.json({ success: true, message: 'UniEntry API is running 🚀' });
+  const { getDbStatus } = require('./config/db');
+  const dbStatus = getDbStatus();
+  res.json({
+    success: true,
+    message: 'UniEntry API is running 🚀',
+    database: {
+      connected: dbStatus.connected,
+      error: dbStatus.error,
+      host: process.env.DB_HOST || '127.0.0.1',
+      port: process.env.DB_PORT || 3306,
+      name: process.env.DB_NAME || 'unientry',
+    }
+  });
 });
 
 // Error handling
