@@ -49,6 +49,27 @@ const Accommodation = sequelize.define('Accommodation', {
   imageUrl: {
     type: DataTypes.TEXT,
     defaultValue: '',
+    get() {
+      const val = this.getDataValue('imageUrl');
+      if (!val) return [];
+      try {
+        const parsed = JSON.parse(val);
+        if (Array.isArray(parsed)) return parsed;
+        return [val];
+      } catch {
+        if (val.includes(',')) {
+          return val.split(',').map(s => s.trim()).filter(Boolean);
+        }
+        return [val];
+      }
+    },
+    set(val) {
+      if (Array.isArray(val)) {
+        this.setDataValue('imageUrl', JSON.stringify(val));
+      } else {
+        this.setDataValue('imageUrl', val || '');
+      }
+    },
   },
   active: {
     type: DataTypes.BOOLEAN,
