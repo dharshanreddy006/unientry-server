@@ -27,7 +27,8 @@ const protectUser = async (req, res, next) => {
 
       next();
     } catch (error) {
-      return res.status(401).json({ success: false, message: 'Token invalid or expired' });
+      console.error('User JWT Verification failed:', error);
+      return res.status(401).json({ success: false, message: `Token invalid or expired: ${error.message}` });
     }
   }
 

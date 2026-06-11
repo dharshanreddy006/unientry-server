@@ -12,11 +12,12 @@ const protect = async (req, res, next) => {
         attributes: { exclude: ['password'] },
       });
       if (!req.admin) {
-        return res.status(401).json({ success: false, message: 'Not authorized' });
+        return res.status(401).json({ success: false, message: 'Not authorized: Admin not found' });
       }
       next();
     } catch (error) {
-      return res.status(401).json({ success: false, message: 'Token invalid or expired' });
+      console.error('JWT Verification failed:', error);
+      return res.status(401).json({ success: false, message: `Token invalid or expired: ${error.message}` });
     }
   }
 
