@@ -42,6 +42,42 @@ const Accommodation = sequelize.define('Accommodation', {
     type: DataTypes.STRING(255),
     allowNull: false,
   },
+  detailedLocation: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+  },
+  propertyType: {
+    type: DataTypes.STRING(100),
+    defaultValue: 'Apartment',
+  },
+  priceMonthly: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+  },
+  priceYearly: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+  },
+  coLiving: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+  },
+  coupleFriendly: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+  },
+  genderPreference: {
+    type: DataTypes.STRING(50),
+    defaultValue: 'Unisex',
+  },
+  depositAmount: {
+    type: DataTypes.STRING(100),
+    defaultValue: 'None',
+  },
+  ownerPhone: {
+    type: DataTypes.STRING(50),
+    defaultValue: '',
+  },
   universityId: {
     type: DataTypes.INTEGER,
     allowNull: true,
