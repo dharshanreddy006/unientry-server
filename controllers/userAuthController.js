@@ -125,4 +125,74 @@ const getMe = async (req, res) => {
   }
 };
 
-module.exports = { signup, login, getMe };
+// POST /api/users/google-login
+const googleLogin = async (req, res) => {
+  try {
+    const { googleId, name, email, profilePicture, role } = req.body;
+
+    if (!googleId || !email) {
+      return res.status(400).json({ success: false, message: 'Google ID and email are required' });
+    }
+
+    // Find user by googleId OR email
+    let user = await User.findOne({
+      where: {
+        [Op.or]: [
+          { googleId },
+          { email }
+        ]
+      }
+    });
+
+    if (user) {
+      // User exists, check if active
+      if (!user.isActive) {
+        return res.status(403).json({ success: false, message: 'Account is deactivated. Contact support.' });
+      }
+
+      // If user exists but didn't have googleId or profilePicture previously, update it
+      let needsUpdate = false;
+      if (!user.googleId) {
+        user.googleId = googleId;
+        needsUpdate = true;
+      }
+      if (profilePicture && !user.profilePicture) {
+        user.profilePicture = profilePicture;
+        needsUpdate = true;
+      }
+      if (needsUpdate) {
+        await user.save();
+      }
+    } else {
+      // User doesn't exist, create a new one!
+      user = await User.create({
+        googleId,
+        name: name || 'Google User',
+        email,
+        profilePicture: profilePicture || null,
+        role: role || 'student',
+      });
+    }
+
+    const token = generateToken(user.id);
+
+    res.json({
+      success: true,
+      message: 'Login successful',
+      data: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        profilePicture: user.profilePicture,
+        role: user.role,
+        token,
+      },
+    });
+  } catch (error) {
+    console.error('Google login error:', error.message);
+    res.status(500).json({ success: false, message: 'Server error during Google login' });
+  }
+};
+
+module.exports = { signup, login, getMe, googleLogin };
