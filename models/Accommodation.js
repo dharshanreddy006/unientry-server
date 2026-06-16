@@ -46,6 +46,10 @@ const Accommodation = sequelize.define('Accommodation', {
     type: DataTypes.TEXT,
     allowNull: true,
   },
+  googleMapLink: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+  },
   propertyType: {
     type: DataTypes.STRING(100),
     defaultValue: 'Apartment',
