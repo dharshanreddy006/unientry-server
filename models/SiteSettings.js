@@ -85,6 +85,18 @@ const SiteSettings = sequelize.define('SiteSettings', {
     type: DataTypes.TEXT,
     defaultValue: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=800',
   },
+  coFounderName: {
+    type: DataTypes.STRING(255),
+    defaultValue: '',
+  },
+  coFounderRole: {
+    type: DataTypes.STRING(255),
+    defaultValue: 'Co-Founder',
+  },
+  coFounderImageUrl: {
+    type: DataTypes.TEXT,
+    defaultValue: '',
+  },
   aboutMission: {
     type: DataTypes.TEXT,
     defaultValue: 'To democratize access to quality international education by providing expert guidance, comprehensive support, and transparent information to every aspiring student, regardless of their background.',
