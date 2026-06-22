@@ -14,6 +14,9 @@ exports.getSettings = async (req, res) => {
     if (plain.founderImageUrl) {
       plain.founderImageUrl = plain.founderImageUrl.replace('http://unientry-server-production.up.railway.app', 'https://unientry-server-production.up.railway.app');
     }
+    if (plain.coFounderImageUrl) {
+      plain.coFounderImageUrl = plain.coFounderImageUrl.replace('http://unientry-server-production.up.railway.app', 'https://unientry-server-production.up.railway.app');
+    }
     res.json({ success: true, data: plain });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
