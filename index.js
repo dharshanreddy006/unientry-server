@@ -42,9 +42,28 @@ app.use('/api/rent-and-rides', require('./routes/rentAndRideRoutes'));
 app.use('/api/users', require('./routes/userRoutes'));
 
 // Health check
-app.get('/api/health', (req, res) => {
+app.get('/api/health', async (req, res) => {
   const { getDbStatus } = require('./config/db');
   const dbStatus = getDbStatus();
+  
+  let smtpDiagnostics = { dbSettingsFound: false, smtpHost: null, smtpUser: null, hasSmtpPass: false, smtpPassLength: 0 };
+  try {
+    const SiteSettings = require('./models/SiteSettings');
+    const settings = await SiteSettings.findOne();
+    if (settings) {
+      smtpDiagnostics = {
+        dbSettingsFound: true,
+        smtpHost: settings.smtpHost,
+        smtpUser: settings.smtpUser,
+        hasSmtpPass: !!settings.smtpPass,
+        smtpPassLength: settings.smtpPass ? settings.smtpPass.length : 0,
+        smtpFrom: settings.smtpFrom
+      };
+    }
+  } catch (err) {
+    smtpDiagnostics.error = err.message;
+  }
+
   res.json({
     success: true,
     message: 'UniEntry API is running 🚀',
@@ -54,7 +73,8 @@ app.get('/api/health', (req, res) => {
       host: process.env.DB_HOST || '127.0.0.1',
       port: process.env.DB_PORT || 3306,
       name: process.env.DB_NAME || 'unientry',
-    }
+    },
+    smtp: smtpDiagnostics
   });
 });
 
