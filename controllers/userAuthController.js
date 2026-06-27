@@ -1,8 +1,13 @@
 const jwt = require('jsonwebtoken');
 const { Op } = require('sequelize');
+const crypto = require('crypto');
 const User = require('../models/User');
-const Otp = require('../models/Otp');
 const sendEmail = require('../utils/sendEmail');
+const {
+  getVerificationEmailHtml,
+  getPasswordResetEmailHtml,
+  getPasswordChangedEmailHtml
+} = require('../utils/emailTemplates');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'unientry_jwt_secret_2024';
 
@@ -18,41 +23,44 @@ const signup = async (req, res) => {
     if (!name || !password) {
       return res.status(400).json({ success: false, message: 'Name and password are required' });
     }
-    if (!email && !phone) {
-      return res.status(400).json({ success: false, message: 'Email or phone number is required' });
+    if (!email) {
+      return res.status(400).json({ success: false, message: 'Email address is required' });
     }
 
     // Check if user already exists
-    const whereClause = [];
-    if (email) whereClause.push({ email });
-    if (phone) whereClause.push({ phone });
-
-    const existing = await User.findOne({ where: { [Op.or]: whereClause } });
+    const existing = await User.findOne({ where: { email } });
     if (existing) {
-      return res.status(400).json({ success: false, message: 'Account already exists with this email or phone' });
+      return res.status(400).json({ success: false, message: 'Account already exists with this email' });
     }
+
+    // Generate secure email verification token (expires in 24 hours)
+    const verificationToken = crypto.randomBytes(32).toString('hex');
+    const verificationTokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
     const user = await User.create({
       name,
-      email: email || null,
+      email,
       phone: phone || null,
       password,
       role: role || 'student',
+      email_verified: false,
+      verificationToken,
+      verificationTokenExpires,
     });
 
-    const token = generateToken(user.id);
+    // Send verification email
+    const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000';
+    const verificationUrl = `${clientUrl}/verify-email?token=${verificationToken}`;
+    
+    const subject = 'Verify your email address - UniEntry Global';
+    const html = getVerificationEmailHtml(user.name, verificationUrl);
+    const text = `Hi ${user.name},\n\nPlease verify your email by clicking the following link: ${verificationUrl}\n\nThank you,\nUniEntry Global`;
+
+    await sendEmail({ to: user.email, subject, html, text });
 
     res.status(201).json({
       success: true,
-      message: 'Account created successfully',
-      data: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        phone: user.phone,
-        role: user.role,
-        token,
-      },
+      message: 'Account created successfully. Please check your email to verify your account.',
     });
   } catch (error) {
     console.error('Signup error:', error.message);
@@ -66,18 +74,11 @@ const login = async (req, res) => {
     const { identifier, password } = req.body;
 
     if (!identifier || !password) {
-      return res.status(400).json({ success: false, message: 'Email/phone and password are required' });
+      return res.status(400).json({ success: false, message: 'Email and password are required' });
     }
 
-    // Find by email or phone
-    const user = await User.findOne({
-      where: {
-        [Op.or]: [
-          { email: identifier },
-          { phone: identifier },
-        ],
-      },
-    });
+    // Find user by email
+    const user = await User.findOne({ where: { email: identifier } });
 
     if (!user) {
       return res.status(401).json({ success: false, message: 'Invalid credentials' });
@@ -91,6 +92,19 @@ const login = async (req, res) => {
     if (!isMatch) {
       return res.status(401).json({ success: false, message: 'Invalid credentials' });
     }
+
+    // Check email verification status
+    if (!user.email_verified) {
+      return res.status(403).json({
+        success: false,
+        unverified: true,
+        message: 'Please verify your email before logging in.',
+      });
+    }
+
+    // Update last login timestamp
+    user.last_login = new Date();
+    await user.save();
 
     const token = generateToken(user.id);
 
@@ -116,7 +130,7 @@ const login = async (req, res) => {
 const getMe = async (req, res) => {
   try {
     const user = await User.findByPk(req.user.id, {
-      attributes: { exclude: ['password'] },
+      attributes: { exclude: ['password', 'verificationToken', 'verificationTokenExpires', 'resetPasswordToken', 'resetPasswordExpires'] },
     });
     if (!user) {
       return res.status(404).json({ success: false, message: 'User not found' });
@@ -147,12 +161,10 @@ const googleLogin = async (req, res) => {
     });
 
     if (user) {
-      // User exists, check if active
       if (!user.isActive) {
         return res.status(403).json({ success: false, message: 'Account is deactivated. Contact support.' });
       }
 
-      // If user exists but didn't have googleId or profilePicture previously, update it
       let needsUpdate = false;
       if (!user.googleId) {
         user.googleId = googleId;
@@ -162,19 +174,27 @@ const googleLogin = async (req, res) => {
         user.profilePicture = profilePicture;
         needsUpdate = true;
       }
+      // Google-login automatically verifies email
+      if (!user.email_verified) {
+        user.email_verified = true;
+        needsUpdate = true;
+      }
       if (needsUpdate) {
         await user.save();
       }
     } else {
-      // User doesn't exist, create a new one!
       user = await User.create({
         googleId,
         name: name || 'Google User',
         email,
         profilePicture: profilePicture || null,
         role: role || 'student',
+        email_verified: true, // Google accounts are pre-verified
       });
     }
+
+    user.last_login = new Date();
+    await user.save();
 
     const token = generateToken(user.id);
 
@@ -197,119 +217,171 @@ const googleLogin = async (req, res) => {
   }
 };
 
-// POST /api/users/send-otp
-const sendOtp = async (req, res) => {
+// POST /api/users/verify-email
+const verifyEmail = async (req, res) => {
   try {
-    const { email } = req.body;
-    if (!email) {
-      return res.status(400).json({ success: false, message: 'Email address is required' });
+    const { token } = req.body;
+    if (!token) {
+      return res.status(400).json({ success: false, message: 'Verification token is required' });
     }
 
-    // Generate a 6-digit OTP code
-    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes from now
-
-    // Upsert OTP in DB
-    const [otpRecord, created] = await Otp.findOrCreate({
-      where: { email },
-      defaults: { otp: otpCode, expiresAt, verified: false }
-    });
-
-    if (!created) {
-      otpRecord.otp = otpCode;
-      otpRecord.expiresAt = expiresAt;
-      otpRecord.verified = false;
-      await otpRecord.save();
-    }
-
-    // Send email
-    const subject = `Your UniEntry Verification Code: ${otpCode}`;
-    const text = `Hi,\n\nYour verification code is ${otpCode}. It is valid for 10 minutes.\n\nBest regards,\nUniEntry Team`;
-    const html = `
-      <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px;">
-        <h2 style="color: #1a56db; text-align: center;">UniEntry GLOBAL</h2>
-        <p>Hi,</p>
-        <p>Thank you for signing in with UniEntry. Use the following security verification code to complete your login/signup:</p>
-        <div style="font-size: 32px; font-weight: bold; letter-spacing: 4px; text-align: center; color: #1e293b; background-color: #f8fafc; padding: 15px; margin: 20px 0; border-radius: 8px;">
-          ${otpCode}
-        </div>
-        <p style="color: #64748b; font-size: 13px;">This code is valid for 10 minutes. If you did not request this code, please ignore this email.</p>
-        <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;" />
-        <p style="text-align: center; font-size: 11px; color: #94a3b8;">© ${new Date().getFullYear()} UniEntry GLOBAL. All rights reserved.</p>
-      </div>
-    `;
-
-    await sendEmail({ to: email, subject, text, html });
-
-    res.json({ success: true, message: 'Verification code sent to your email.' });
-  } catch (error) {
-    console.error('Send OTP error:', error.message);
-    res.status(500).json({ success: false, message: 'Failed to send verification code. Please try again.' });
-  }
-};
-
-// POST /api/users/verify-otp
-const verifyOtp = async (req, res) => {
-  try {
-    const { email, otp, name, role } = req.body;
-    if (!email || !otp) {
-      return res.status(400).json({ success: false, message: 'Email and verification code are required' });
-    }
-
-    // Find the OTP record
-    const otpRecord = await Otp.findOne({
+    const user = await User.findOne({
       where: {
-        email,
-        otp,
-        verified: false,
-        expiresAt: { [Op.gt]: new Date() } // expiry in future
+        verificationToken: token,
+        verificationTokenExpires: { [Op.gt]: new Date() }
       }
     });
 
-    if (!otpRecord) {
-      return res.status(400).json({ success: false, message: 'Invalid or expired verification code' });
+    if (!user) {
+      return res.status(400).json({ success: false, message: 'Invalid or expired verification token' });
     }
 
-    // Mark as verified
-    otpRecord.verified = true;
-    await otpRecord.save();
+    user.email_verified = true;
+    user.verificationToken = null;
+    user.verificationTokenExpires = null;
+    user.last_login = new Date();
+    await user.save();
 
-    // Check if user exists
-    let user = await User.findOne({ where: { email } });
-
-    if (user) {
-      if (!user.isActive) {
-        return res.status(403).json({ success: false, message: 'Account is deactivated. Contact support.' });
-      }
-    } else {
-      // Create new user (signup on the fly)
-      const defaultName = name || email.split('@')[0];
-      user = await User.create({
-        name: defaultName,
-        email,
-        role: role || 'student',
-        isActive: true
-      });
-    }
-
-    const token = generateToken(user.id);
+    const sessionToken = generateToken(user.id);
 
     res.json({
       success: true,
-      message: 'Login successful',
+      message: 'Email verified successfully',
       data: {
         id: user.id,
         name: user.name,
         email: user.email,
         phone: user.phone,
         role: user.role,
-        token,
-      },
+        token: sessionToken,
+      }
     });
   } catch (error) {
-    console.error('Verify OTP error:', error.message);
+    console.error('Verify email error:', error.message);
     res.status(500).json({ success: false, message: 'Server error during verification' });
   }
 };
 
-module.exports = { signup, login, getMe, googleLogin, sendOtp, verifyOtp };
+// POST /api/users/resend-verification
+const resendVerification = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ success: false, message: 'Email address is required' });
+    }
+
+    const user = await User.findOne({ where: { email } });
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found with this email' });
+    }
+
+    if (user.email_verified) {
+      return res.status(400).json({ success: false, message: 'Email address is already verified' });
+    }
+
+    // Generate new token
+    const token = crypto.randomBytes(32).toString('hex');
+    user.verificationToken = token;
+    user.verificationTokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    await user.save();
+
+    const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000';
+    const verificationUrl = `${clientUrl}/verify-email?token=${token}`;
+
+    const subject = 'Verify your email address - UniEntry Global';
+    const html = getVerificationEmailHtml(user.name, verificationUrl);
+    const text = `Hi ${user.name},\n\nPlease verify your email by clicking the following link: ${verificationUrl}\n\nThank you,\nUniEntry Global`;
+
+    await sendEmail({ to: user.email, subject, html, text });
+
+    res.json({ success: true, message: 'Verification email sent successfully' });
+  } catch (error) {
+    console.error('Resend verification error:', error.message);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
+// POST /api/users/forgot-password
+const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ success: false, message: 'Email address is required' });
+    }
+
+    const user = await User.findOne({ where: { email } });
+    if (!user) {
+      // Return success anyway for security / email privacy
+      return res.json({ success: true, message: 'If the email exists, a password reset link has been sent' });
+    }
+
+    // Generate reset token (expires in 30 minutes)
+    const token = crypto.randomBytes(32).toString('hex');
+    user.resetPasswordToken = token;
+    user.resetPasswordExpires = new Date(Date.now() + 30 * 60 * 1000);
+    await user.save();
+
+    const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000';
+    const resetUrl = `${clientUrl}/reset-password?token=${token}`;
+
+    const subject = 'Reset your password - UniEntry Global';
+    const html = getPasswordResetEmailHtml(user.name, resetUrl);
+    const text = `Hi ${user.name},\n\nPlease reset your password by clicking the following link: ${resetUrl}\n\nThank you,\nUniEntry Global`;
+
+    await sendEmail({ to: user.email, subject, html, text });
+
+    res.json({ success: true, message: 'If the email exists, a password reset link has been sent' });
+  } catch (error) {
+    console.error('Forgot password error:', error.message);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
+// POST /api/users/reset-password
+const resetPassword = async (req, res) => {
+  try {
+    const { token, password } = req.body;
+    if (!token || !password) {
+      return res.status(400).json({ success: false, message: 'Token and new password are required' });
+    }
+
+    const user = await User.findOne({
+      where: {
+        resetPasswordToken: token,
+        resetPasswordExpires: { [Op.gt]: new Date() }
+      }
+    });
+
+    if (!user) {
+      return res.status(400).json({ success: false, message: 'Invalid or expired password reset token' });
+    }
+
+    user.password = password;
+    user.resetPasswordToken = null;
+    user.resetPasswordExpires = null;
+    await user.save();
+
+    // Send confirmation email
+    const subject = 'Password changed successfully - UniEntry Global';
+    const html = getPasswordChangedEmailHtml(user.name);
+    const text = `Hi ${user.name},\n\nYour password has been changed successfully.\n\nThank you,\nUniEntry Global`;
+
+    await sendEmail({ to: user.email, subject, html, text });
+
+    res.json({ success: true, message: 'Password reset successfully. You can now log in.' });
+  } catch (error) {
+    console.error('Reset password error:', error.message);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
+module.exports = {
+  signup,
+  login,
+  getMe,
+  googleLogin,
+  verifyEmail,
+  resendVerification,
+  forgotPassword,
+  resetPassword
+};

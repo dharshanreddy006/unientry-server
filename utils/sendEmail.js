@@ -1,20 +1,20 @@
 const nodemailer = require('nodemailer');
 
 const sendEmail = async ({ to, subject, html, text }) => {
-  const host = process.env.SMTP_HOST || 'smtp.gmail.com';
+  const host = process.env.SMTP_HOST || 'mail.unientry.online';
   const port = process.env.SMTP_PORT || 587;
-  const user = process.env.SMTP_USER || 'infounientry@gmail.com';
+  const user = process.env.SMTP_USER || 'noreply@unientry.online';
   const pass = process.env.SMTP_PASS;
-  const from = process.env.SMTP_FROM || 'UniEntry GLOBAL <infounientry@gmail.com>';
+  const from = process.env.SMTP_FROM || 'UniEntry Global <noreply@unientry.online>';
 
-  // If App Password is not configured, print info to Railway logs and throw an error to alert the user
+  // If App Password/SMTP_PASS is not configured, print info to console logs
   if (!pass) {
     console.log('\n========================================');
     console.log('📧 EMAIL SIMULATION (SMTP_PASS is missing)');
     console.log(`To: ${to}`);
     console.log(`Subject: ${subject}`);
     console.log(`Body:\n${text || html}`);
-    console.log('To send real emails from infounientry@gmail.com, please add SMTP_PASS to your Railway Env variables.');
+    console.log('To send real emails from noreply@unientry.online, please configure SMTP_PASS in your environment.');
     console.log('========================================\n');
     return { success: true, simulated: true };
   }
