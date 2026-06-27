@@ -94,6 +94,7 @@ const autoSeed = async () => {
     const Destination = require('./models/Destination');
     const RentAndRide = require('./models/RentAndRide');
     const User = require('./models/User');
+    const Otp = require('./models/Otp');
 
     // Seed Admin
     const adminCount = await Admin.count();

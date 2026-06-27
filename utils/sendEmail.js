@@ -1,0 +1,48 @@
+const nodemailer = require('nodemailer');
+
+const sendEmail = async ({ to, subject, html, text }) => {
+  const host = process.env.SMTP_HOST;
+  const port = process.env.SMTP_PORT || 587;
+  const user = process.env.SMTP_USER;
+  const pass = process.env.SMTP_PASS;
+  const from = process.env.SMTP_FROM || 'UniEntry <noreply@unientry.com>';
+
+  // If credentials are not configured, print to logs and bypass
+  if (!host || !user || !pass) {
+    console.log('\n========================================');
+    console.log('📧 EMAIL SIMULATION (SMTP Not Configured)');
+    console.log(`To: ${to}`);
+    console.log(`Subject: ${subject}`);
+    console.log(`Body:\n${text || html}`);
+    console.log('========================================\n');
+    return { success: true, simulated: true };
+  }
+
+  try {
+    const transporter = nodemailer.createTransport({
+      host,
+      port: parseInt(port),
+      secure: parseInt(port) === 465, // true for 465, false for other ports
+      auth: {
+        user,
+        pass,
+      },
+    });
+
+    const info = await transporter.sendMail({
+      from,
+      to,
+      subject,
+      text,
+      html,
+    });
+
+    console.log(`📧 Email sent successfully to ${to}: ${info.messageId}`);
+    return { success: true, info };
+  } catch (error) {
+    console.error('❌ Error sending email:', error.message);
+    throw error;
+  }
+};
+
+module.exports = sendEmail;
