@@ -64,7 +64,7 @@ const signup = async (req, res) => {
     });
   } catch (error) {
     console.error('Signup error:', error.message);
-    res.status(500).json({ success: false, message: 'Server error during signup' });
+    res.status(500).json({ success: false, message: error.message || 'Server error during signup' });
   }
 };
 
@@ -297,7 +297,7 @@ const resendVerification = async (req, res) => {
     res.json({ success: true, message: 'Verification email sent successfully' });
   } catch (error) {
     console.error('Resend verification error:', error.message);
-    res.status(500).json({ success: false, message: 'Server error' });
+    res.status(500).json({ success: false, message: error.message || 'Server error' });
   }
 };
 
@@ -333,7 +333,7 @@ const forgotPassword = async (req, res) => {
     res.json({ success: true, message: 'If the email exists, a password reset link has been sent' });
   } catch (error) {
     console.error('Forgot password error:', error.message);
-    res.status(500).json({ success: false, message: 'Server error' });
+    res.status(500).json({ success: false, message: error.message || 'Server error' });
   }
 };
 
