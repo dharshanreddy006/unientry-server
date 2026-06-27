@@ -137,6 +137,26 @@ const SiteSettings = sequelize.define('SiteSettings', {
       this.setDataValue('team', JSON.stringify(val));
     },
   },
+  smtpHost: {
+    type: DataTypes.STRING(255),
+    allowNull: true,
+  },
+  smtpPort: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+  },
+  smtpUser: {
+    type: DataTypes.STRING(255),
+    allowNull: true,
+  },
+  smtpPass: {
+    type: DataTypes.STRING(255),
+    allowNull: true,
+  },
+  smtpFrom: {
+    type: DataTypes.STRING(255),
+    allowNull: true,
+  },
 }, {
   tableName: 'site_settings',
   timestamps: true,

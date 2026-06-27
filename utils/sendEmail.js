@@ -1,22 +1,33 @@
 const nodemailer = require('nodemailer');
 
 const sendEmail = async ({ to, subject, html, text }) => {
-  const host = process.env.SMTP_HOST || 'mail.unientry.online';
-  const port = process.env.SMTP_PORT || 587;
-  const user = process.env.SMTP_USER || 'noreply@unientry.online';
-  const pass = process.env.SMTP_PASS;
-  const from = process.env.SMTP_FROM || 'UniEntry Global <noreply@unientry.online>';
+  // Lazily require model to avoid circular dependency issues
+  const SiteSettings = require('../models/SiteSettings');
+  
+  let settings = null;
+  try {
+    settings = await SiteSettings.findOne();
+  } catch (err) {
+    console.error('⚠️ Failed to load SMTP settings from DB:', err.message);
+  }
 
-  // If App Password/SMTP_PASS is not configured, print info to console logs
+  const host = (settings && settings.smtpHost) || process.env.SMTP_HOST || 'mail.unientry.online';
+  const port = (settings && settings.smtpPort) || process.env.SMTP_PORT || 587;
+  const user = (settings && settings.smtpUser) || process.env.SMTP_USER || 'noreply@unientry.online';
+  const pass = (settings && settings.smtpPass) || process.env.SMTP_PASS;
+  const from = (settings && settings.smtpFrom) || process.env.SMTP_FROM || 'UniEntry Global <noreply@unientry.online>';
+
+  // If App Password/SMTP_PASS is not configured, print info to console logs and throw error
   if (!pass) {
+    const errorMsg = 'SMTP_PASS is not configured. To send real emails from noreply@unientry.online, please configure SMTP credentials in the Admin Dashboard Settings or set SMTP_PASS in the server environment variables.';
     console.log('\n========================================');
     console.log('📧 EMAIL SIMULATION (SMTP_PASS is missing)');
     console.log(`To: ${to}`);
     console.log(`Subject: ${subject}`);
     console.log(`Body:\n${text || html}`);
-    console.log('To send real emails from noreply@unientry.online, please configure SMTP_PASS in your environment.');
+    console.log(errorMsg);
     console.log('========================================\n');
-    return { success: true, simulated: true };
+    throw new Error(errorMsg);
   }
 
   try {
@@ -45,7 +56,7 @@ const sendEmail = async ({ to, subject, html, text }) => {
     return { success: true, info };
   } catch (error) {
     console.error('❌ Error sending email via SMTP:', error.message);
-    throw error;
+    throw new Error(`SMTP Error: ${error.message}`);
   }
 };
 
